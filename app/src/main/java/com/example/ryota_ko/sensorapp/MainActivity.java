@@ -1,31 +1,74 @@
 package com.example.ryota_ko.sensorapp;
 
 import android.app.Activity;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
+import java.util.List;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SensorEventListener{
 
     //現在のカウントを表示させるためのテキストビュー
-    TextView text;
+    TextView text,text2,text3;
     //現在の値を保存しておくための変数
     int number;
+    //様々なセンサーの値を取得するためのもの
+    SensorManager mSensorManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         text = (TextView) findViewById(R.id.textView);
+        text2 = (TextView) findViewById(R.id.textView2);
+        text3 = (TextView) findViewById(R.id.textView3);
         text.setText("0");
+        text2.setText("0");
+        text3.setText("0");
     }
 
-    public void plus(View v){
-        number = number + 1;
-        text.setText(String.valueOf(number));
+    @Override
+    protected  void onResume() {
+        super.onResume();
+        //センサータイプを指定してセンサーを取得
+        List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        //SensorManageにリスナーを登録
+        if(sensors.size() > 0){
+            Sensor s = sensors.get(0);
+            mSensorManager.registerListener(this, s, SensorManager.SENSOR_DELAY_UI);
+
+        }
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        //Listenerの登録解除
+        mSensorManager.unregisterListener(this);
+    }
+    @Override
+    public void onSensorChanged(SensorEvent event){
+        if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            String str = "\nX軸:" + event.values[SensorManager.DATA_X];
+            String str2 = "\nY軸:" + event.values[SensorManager.DATA_Y];
+            String str3 = "\nZ軸:" + event.values[SensorManager.DATA_Z];
+            text.setText(str);
+            text2.setText(str2);
+            text3.setText(str3);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy){
+
     }
 
     @Override
